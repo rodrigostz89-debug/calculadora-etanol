@@ -9,23 +9,43 @@ st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa E
 
 st.markdown("---")
 
-# Inputs com mais precisão e foco por Enter
+# Função de validação (como no seu Tkinter)
+def validar_entrada(texto):
+    if texto == "":
+        return True
+    if texto.count('.') > 1:
+        return False
+    try:
+        float(texto)
+        return True
+    except ValueError:
+        return False
+
+# Inputs como text_input para começar vazios
 st.subheader("Dados de Entrada")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    peso_liquido = st.number_input("Peso Líquido (kg)", min_value=0.0, step=0.001, format="%.3f", key="peso")
-    massa_especifica = st.number_input("Massa Específica 20° (kg/m³)", min_value=0.0, step=0.0001, format="%.4f", key="massa")
+    peso_str = st.text_input("Peso Líquido (kg)", value="", key="peso")
+    if peso_str and not validar_entrada(peso_str):
+        st.warning("Valor inválido no Peso Líquido!")
+    massa_str = st.text_input("Massa Específica 20° (kg/m³)", value="", key="massa")
+    if massa_str and not validar_entrada(massa_str):
+        st.warning("Valor inválido na Massa Específica!")
 
 with col2:
-    volume_carregado = st.number_input("Volume Carregado (L)", min_value=0.0, step=0.001, format="%.3f", key="volume")
-    fator_reducao = st.number_input("Fator de Redução", min_value=0.0, max_value=2.0, step=0.0001, format="%.4f", key="fator")
+    volume_str = st.text_input("Volume Carregado (L)", value="", key="volume")
+    if volume_str and not validar_entrada(volume_str):
+        st.warning("Valor inválido no Volume Carregado!")
+    fator_str = st.text_input("Fator de Redução", value="", key="fator")
+    if fator_str and not validar_entrada(fator_str):
+        st.warning("Valor inválido no Fator de Redução!")
 
-# JavaScript para foco por Enter (pula pro próximo input ou calcula no último)
+# JavaScript para foco por Enter (pula pro próximo ou calcula no último)
 html("""
 <script>
-    const inputs = window.parent.document.querySelectorAll('input[type="number"]');
+    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
     if (inputs.length > 0) {
         inputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
@@ -49,8 +69,13 @@ html("""
 
 # Botão Calcular
 if st.button("CALCULAR", type="primary", use_container_width=True):
-    if peso_liquido > 0 and massa_especifica > 0 and volume_carregado >= 0 and fator_reducao > 0:
-        try:
+    try:
+        peso_liquido = float(peso_str) if peso_str else 0.0
+        massa_especifica = float(massa_str) if massa_str else 0.0
+        volume_carregado = float(volume_str) if volume_str else 0.0
+        fator_reducao = float(fator_str) if fator_str else 0.0
+
+        if peso_liquido > 0 and massa_especifica > 0 and volume_carregado >= 0 and fator_reducao > 0:
             # Cálculos exatamente iguais ao seu original
             diferenca_litros = (peso_liquido / massa_especifica) * 1000
             volume_real = volume_carregado * fator_reducao
@@ -72,11 +97,10 @@ if st.button("CALCULAR", type="primary", use_container_width=True):
             # Botão reiniciar
             if st.button("Reiniciar"):
                 st.rerun()
-
-        except Exception as e:
-            st.error(f"Erro nos cálculos: {e}")
-    else:
-        st.warning("Preencha todos os campos com valores positivos válidos!")
+        else:
+            st.warning("Preencha todos os campos com valores positivos válidos!")
+    except ValueError:
+        st.warning("Insira valores numéricos válidos em todos os campos!")
 
 st.markdown("---")
 st.caption("Desenvolvido por Rodrigo | Ferramenta para verificação de etanol em veículos")
