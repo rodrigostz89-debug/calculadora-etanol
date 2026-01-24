@@ -4,7 +4,7 @@ from streamlit.components.v1 import html
 # Configuração da página com layout compacto
 st.set_page_config(page_title="Calculadora de Etanol", layout="centered")
 
-# CSS para tema escuro e ajustes de padding (reduz espaços)
+# CSS para tema escuro com contraste (fundo preto, janelas cinza escuro)
 st.markdown("""
     <style>
         /* Tema escuro geral */
@@ -17,11 +17,11 @@ st.markdown("""
             color: #FFFFFF !important;
         }
         .stTextInput > div > div > input {
-            background-color: #FFFFFF !important;  /* Fundo branco nos inputs */
+            background-color: #333333 !important;  /* Cinza escuro para contraste */
             border: 1px solid #555555;
-            color: #000000 !important;  /* Texto preto para legibilidade */
+            color: #FFFFFF !important;  /* Texto branco */
         }
-        /* Botões */
+        /* Botões primary (Calcular) */
         button[kind="primary"] {
             background-color: #0077B6;
             color: #FFFFFF;
@@ -29,10 +29,18 @@ st.markdown("""
         button[kind="primary"]:hover {
             background-color: #005F8F;
         }
-        /* Sucess, info, metric, error, success boxes com fundo branco */
-        div.stAlert > div, .stMetric {
-            background-color: #FFFFFF !important;
-            color: #000000 !important;
+        /* Botões secundários (Reiniciar) - mesmo estilo do primary pra visibilidade */
+        button:not([kind="primary"]) {
+            background-color: #0077B6 !important;
+            color: #FFFFFF !important;
+        }
+        button:not([kind="primary"]):hover {
+            background-color: #005F8F !important;
+        }
+        /* Alertas e métricas com cinza escuro */
+        div.stAlert > div {
+            background-color: #333333 !important;
+            color: #FFFFFF !important;
         }
         /* Reduz padding global */
         .block-container {
@@ -42,7 +50,7 @@ st.markdown("""
             padding-right: 2rem !important;
         }
         /* Reduz espaço entre elementos */
-        .stMarkdown, .stSubheader, .stAlert {
+        .stMarkdown, .stSubheader, .stAlert, .stTextInput {
             margin-top: 0.5rem !important;
             margin-bottom: 0.5rem !important;
         }
@@ -125,10 +133,13 @@ if st.button("CALCULAR", type="primary", use_container_width=True):
             diferenca_ml = (diferenca_litros - volume_real) * 1000.0
             porcentagem = (diferenca_ml / volume_real) / 10 if volume_real != 0 else 0
 
-            # Resultados compactos
-            st.success(f"**Volume Real:** {volume_real:.3f} L")
-            st.info(f"**Diferença:** {diferenca_ml:.1f} Lts")
-            st.metric("Porcentagem", f"{porcentagem:.2f} %")
+            # Resultados como "janelas" (text_input readonly)
+            col3, col4 = st.columns(2)
+            with col3:
+                st.text_input("Volume Real", value=f"{volume_real:.3f} L", disabled=True)
+                st.text_input("Diferença (Lts)", value=f"{diferenca_ml:.1f} Lts", disabled=True)
+            with col4:
+                st.text_input("Porcentagem", value=f"{porcentagem:.2f} %", disabled=True)
 
             # Avaliação
             if porcentagem >= 0.099 or porcentagem <= -0.299:
