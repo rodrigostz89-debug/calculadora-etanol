@@ -8,30 +8,30 @@ st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa E
 
 st.markdown("---")
 
-# Inputs
+# Inputs com mais precisão
 st.subheader("Dados de Entrada")
 
 col1, col2 = st.columns(2)
 
 with col1:
     peso_liquido = st.number_input("Peso Líquido (kg)", min_value=0.0, step=0.001, format="%.3f")
-    massa_especifica = st.number_input("Massa Específica 20° (g/cm³)", min_value=0.0, step=0.0001, format="%.4f")
+    massa_especifica = st.number_input("Massa Específica 20° (kg/m³)", min_value=0.0, step=0.0001, format="%.4f")
 
 with col2:
-    volume_carregado = st.number_input("Volume Carregado (L)", min_value=0.0, step=0.1, format="%.1f")
-    fator_reducao = st.number_input("Fator de Redução", min_value=0.0, max_value=2.0, step=0.001, format="%.3f")
+    volume_carregado = st.number_input("Volume Carregado (L)", min_value=0.0, step=0.001, format="%.3f")
+    fator_reducao = st.number_input("Fator de Redução", min_value=0.0, max_value=2.0, step=0.0001, format="%.4f")
 
 # Botão Calcular
 if st.button("CALCULAR", type="primary", use_container_width=True):
     if peso_liquido > 0 and massa_especifica > 0 and volume_carregado >= 0 and fator_reducao > 0:
         try:
-            # Cálculos (lógica igual ao seu Tkinter, com correção na ordem da diferença)
-            volume_real = (peso_liquido / massa_especifica) * 1000
-            diferenca_litros = volume_carregado * fator_reducao
-            diferenca_ml = (volume_real - diferenca_litros) * 1000.0
+            # Cálculos exatamente iguais ao seu original
+            diferenca_litros = (peso_liquido / massa_especifica) * 1000
+            volume_real = volume_carregado * fator_reducao
+            diferenca_ml = (diferenca_litros - volume_real) * 1000.0
             porcentagem = (diferenca_ml / volume_real) / 10 if volume_real != 0 else 0
 
-            # Exibição dos resultados
+            # Exibição dos resultados com formatação igual
             st.subheader("Resultados")
             st.success(f"**Volume Real:** {volume_real:.3f} L")
             st.info(f"**Diferença:** {diferenca_ml:.1f} Lts")
