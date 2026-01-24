@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.components.v1 import html
 
 # Configuração da página
 st.set_page_config(page_title="Calculadora de Etanol", layout="centered")
@@ -8,18 +9,43 @@ st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa E
 
 st.markdown("---")
 
-# Inputs com mais precisão
+# Inputs com mais precisão e foco por Enter
 st.subheader("Dados de Entrada")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    peso_liquido = st.number_input("Peso Líquido (kg)", min_value=0.0, step=0.001, format="%.3f")
-    massa_especifica = st.number_input("Massa Específica 20° (kg/m³)", min_value=0.0, step=0.0001, format="%.4f")
+    peso_liquido = st.number_input("Peso Líquido (kg)", min_value=0.0, step=0.001, format="%.3f", key="peso")
+    massa_especifica = st.number_input("Massa Específica 20° (kg/m³)", min_value=0.0, step=0.0001, format="%.4f", key="massa")
 
 with col2:
-    volume_carregado = st.number_input("Volume Carregado (L)", min_value=0.0, step=0.001, format="%.3f")
-    fator_reducao = st.number_input("Fator de Redução", min_value=0.0, max_value=2.0, step=0.0001, format="%.4f")
+    volume_carregado = st.number_input("Volume Carregado (L)", min_value=0.0, step=0.001, format="%.3f", key="volume")
+    fator_reducao = st.number_input("Fator de Redução", min_value=0.0, max_value=2.0, step=0.0001, format="%.4f", key="fator")
+
+# JavaScript para foco por Enter (pula pro próximo input ou calcula no último)
+html("""
+<script>
+    const inputs = window.parent.document.querySelectorAll('input[type="number"]');
+    if (inputs.length > 0) {
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        // No último input, clica no botão Calcular
+                        const button = window.parent.document.querySelector('button[kind="primary"]');
+                        if (button) button.click();
+                    }
+                }
+            });
+        });
+        // Foco inicial no primeiro input
+        inputs[0].focus();
+    }
+</script>
+""")
 
 # Botão Calcular
 if st.button("CALCULAR", type="primary", use_container_width=True):
