@@ -1,11 +1,56 @@
 import streamlit as st
 from streamlit.components.v1 import html
 
-# Configuração da página
+# Configuração da página com layout compacto
 st.set_page_config(page_title="Calculadora de Etanol", layout="centered")
 
+# CSS para tema escuro e ajustes de padding (reduz espaços)
+st.markdown("""
+    <style>
+        /* Tema escuro geral */
+        .stApp {
+            background-color: #1E1E1E;
+            color: #FFFFFF;
+        }
+        /* Inputs e labels claros */
+        label, .stTextInput > div > div > input {
+            color: #FFFFFF !important;
+        }
+        .stTextInput > div > div > input {
+            background-color: #333333;
+            border: 1px solid #555555;
+            color: #FFFFFF;
+        }
+        /* Botões */
+        button[kind="primary"] {
+            background-color: #0077B6;
+            color: #FFFFFF;
+        }
+        button[kind="primary"]:hover {
+            background-color: #005F8F;
+        }
+        /* Sucess, info, metric, error, success boxes */
+        div.stAlert > div {
+            background-color: #2A2A2A !important;
+            color: #FFFFFF !important;
+        }
+        /* Reduz padding global */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }
+        /* Reduz espaço entre elementos */
+        .stMarkdown, .stSubheader, .stAlert {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("Calculadora de Etanol")
-st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa Específica e Volume")
+st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa Específica e Volume", unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -22,8 +67,6 @@ def validar_entrada(texto):
         return False
 
 # Inputs como text_input para começar vazios
-st.subheader("Dados de Entrada")
-
 col1, col2 = st.columns(2)
 
 with col1:
@@ -67,7 +110,7 @@ html("""
 </script>
 """)
 
-# Botão Calcular
+# Botão Calcular (agora mais próximo)
 if st.button("CALCULAR", type="primary", use_container_width=True):
     try:
         peso_liquido = float(peso_str) if peso_str else 0.0
@@ -82,8 +125,7 @@ if st.button("CALCULAR", type="primary", use_container_width=True):
             diferenca_ml = (diferenca_litros - volume_real) * 1000.0
             porcentagem = (diferenca_ml / volume_real) / 10 if volume_real != 0 else 0
 
-            # Exibição dos resultados com formatação igual
-            st.subheader("Resultados")
+            # Resultados compactos
             st.success(f"**Volume Real:** {volume_real:.3f} L")
             st.info(f"**Diferença:** {diferenca_ml:.1f} Lts")
             st.metric("Porcentagem", f"{porcentagem:.2f} %")
