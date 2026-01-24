@@ -12,14 +12,14 @@ st.markdown("""
             background-color: #1E1E1E;
             color: #FFFFFF;
         }
-        /* Inputs e labels claros */
-        label, .stTextInput > div > div > input {
+        /* Inputs e labels */
+        label {
             color: #FFFFFF !important;
         }
         .stTextInput > div > div > input {
-            background-color: #333333;
+            background-color: #FFFFFF !important;  /* Fundo branco nos inputs */
             border: 1px solid #555555;
-            color: #FFFFFF;
+            color: #000000 !important;  /* Texto preto para legibilidade */
         }
         /* Botões */
         button[kind="primary"] {
@@ -29,10 +29,10 @@ st.markdown("""
         button[kind="primary"]:hover {
             background-color: #005F8F;
         }
-        /* Sucess, info, metric, error, success boxes */
-        div.stAlert > div {
-            background-color: #2A2A2A !important;
-            color: #FFFFFF !important;
+        /* Sucess, info, metric, error, success boxes com fundo branco */
+        div.stAlert > div, .stMetric {
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
         }
         /* Reduz padding global */
         .block-container {
