@@ -9,7 +9,7 @@ st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa E
 
 st.markdown("---")
 
-# Função de validação (como no seu Tkinter)
+# Função de validação
 def validar_entrada(texto):
     if texto == "":
         return True
@@ -42,30 +42,109 @@ with col2:
     if fator_str and not validar_entrada(fator_str):
         st.warning("Valor inválido no Fator de Redução!")
 
-# JavaScript para foco por Enter (pula pro próximo ou calcula no último)
-html("""
+# JavaScript para foco por Enter e Máscaras de Digitação
+html(r"""
 <script>
-    const inputs = window.parent.document.querySelectorAll('input[type="text"]');
-    if (inputs.length > 0) {
-        inputs.forEach((input, index) => {
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    } else {
-                        // No último input, clica no botão Calcular
-                        const button = window.parent.document.querySelector('button[kind="primary"]');
-                        if (button) button.click();
+    const configs = [
+        { maxDigits: 5, decimals: 3 }, // Peso Líquido (ex: 74.000)
+        { maxDigits: 6, decimals: 3 }, // Massa Específica 20° (ex: 790.487)
+        { maxDigits: 5, decimals: 3 }, // Volume Carregado (ex: 62.000)
+        { maxDigits: 5, decimals: 4 }  // Fator de Redução (ex: 0.9946)
+    ];
+
+    function setNativeValue(element, value) {
+        try {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.parent.HTMLInputElement.prototype, "value"
+            ).set;
+            nativeInputValueSetter.call(element, value);
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch(e) {
+            console.error("Erro ao definir valor no Streamlit:", e);
+        }
+    }
+
+    function formatMask(value, config) {
+        if (!value) return "";
+        let digits = value.replace(/\D/g, '');
+        if (digits.length === 0) return "";
+        
+        // Remove zeros à esquerda, mas mantém pelo menos 1 dígito
+        digits = digits.replace(/^0+/, '');
+        if (digits === '') digits = '0';
+        
+        // Limita o número máximo de dígitos
+        if (digits.length > config.maxDigits) {
+            digits = digits.slice(0, config.maxDigits);
+        }
+        
+        // Preenche com zeros à esquerda para garantir as casas decimais
+        while (digits.length <= config.decimals) {
+            digits = '0' + digits;
+        }
+        
+        const beforeDot = digits.slice(0, digits.length - config.decimals);
+        const afterDot = digits.slice(-config.decimals);
+        
+        return beforeDot + '.' + afterDot;
+    }
+
+    try {
+        const doc = window.parent.document;
+        const inputs = doc.querySelectorAll('input[type="text"]');
+        if (inputs.length > 0) {
+            inputs.forEach((input, index) => {
+                if (index < configs.length) {
+                    // Adiciona o listener de máscara (apenas uma vez)
+                    if (!input.dataset.masked) {
+                        input.dataset.masked = "true";
+                        
+                        input.addEventListener('input', (e) => {
+                            const formatted = formatMask(e.target.value, configs[index]);
+                            if (formatted !== e.target.value) {
+                                setNativeValue(input, formatted);
+                            }
+                        });
+                        
+                        // Formata valor inicial se existir
+                        if (input.value) {
+                            const formatted = formatMask(input.value, configs[index]);
+                            if (formatted !== input.value) {
+                                setNativeValue(input, formatted);
+                            }
+                        }
                     }
                 }
+                
+                // Adiciona listener de Enter (apenas uma vez)
+                if (!input.dataset.enterListener) {
+                    input.dataset.enterListener = "true";
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                            } else {
+                                // No último input, clica no botão Calcular
+                                const button = doc.querySelector('button[kind="primary"]');
+                                if (button) button.click();
+                            }
+                        }
+                    });
+                }
             });
-        });
-        // Foco inicial no primeiro input
-        inputs[0].focus();
+            
+            // Foco inicial (uma vez apenas)
+            if (!doc.body.dataset.focusSet) {
+                 inputs[0].focus();
+                 doc.body.dataset.focusSet = "true";
+            }
+        }
+    } catch(e) {
+        console.error("Máscaras desativadas devido a restrições de CORS no Streamlit Cloud.", e);
     }
 </script>
-""")
+""", height=0)
 
 # Botão Calcular
 if st.button("CALCULAR", type="primary", use_container_width=True):
