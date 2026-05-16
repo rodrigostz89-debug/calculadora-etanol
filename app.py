@@ -9,6 +9,10 @@ st.set_page_config(page_title='Calculadora de Etanol', layout='centered')
 st.title('Sistema de Etanol')
 tab1, tab2 = st.tabs(['Calculadora', 'Gerador de Certificado'])
 
+# Inicializar número do certificado no estado da sessão
+if 'num_cert_atual' not in st.session_state:
+    st.session_state.num_cert_atual = ''
+
 with tab1:
     st.markdown("Verificação de carregamento em veículos - Peso Líquido, Massa Específica e Volume")
 
@@ -209,7 +213,7 @@ with tab2:
 
     col1, col2 = st.columns(2)
     with col1:
-        num_cert = st.text_input('Número do Certificado', value='')
+        num_cert = st.text_input('Número do Certificado', value=st.session_state.num_cert_atual)
         data_cert = st.text_input('Data', value=datetime.datetime.now().strftime('%d/%m/%Y'))
     with col2:
         placa = st.text_input('Placa do Veículo', value=placa_extract)
@@ -227,6 +231,10 @@ with tab2:
                         file_name=f'Certificado_{placa}.docx',
                         mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     )
+                    
+                    # Tenta incrementar o número automaticamente para o próximo uso
+                    if num_cert.isdigit():
+                        st.session_state.num_cert_atual = str(int(num_cert) + 1)
                 except Exception as e:
                     st.error(f'Erro ao gerar documento: {e}')
             else:
