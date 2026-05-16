@@ -230,7 +230,11 @@ with tab2:
                 except Exception as e:
                     st.error(f'Erro ao gerar documento: {e}')
             else:
-                st.warning('Preencha todos os campos (Número, Placa e Quantidade).')
+                faltando = []
+                if not num_cert: faltando.append("Número do Certificado")
+                if not placa: faltando.append("Placa do Veículo")
+                if not quantidade: faltando.append("Quantidade")
+                st.warning(f"Falta preencher: {', '.join(faltando)}")
         else:
             st.warning('Por favor, envie o Modelo do Certificado e a Ordem de Carregamento.')
 
