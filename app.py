@@ -194,7 +194,7 @@ with tab2:
     st.subheader('1. Arquivos Necessários')
     colA, colB = st.columns(2)
     with colA:
-        template_file = st.file_uploader('Modelo do Certificado (Word .docx)', type=['docx'])
+        template_file = st.file_uploader('Modelo do Certificado (Word)')
     with colB:
         sap_file = st.file_uploader('Ordem de Carregamento (PDF)')
 
