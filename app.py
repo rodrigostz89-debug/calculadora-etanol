@@ -196,7 +196,7 @@ with tab2:
     with colA:
         template_file = st.file_uploader('Modelo do Certificado (Word .docx)', type=['docx'])
     with colB:
-        sap_file = st.file_uploader('Ordem de Carregamento (PDF)', type=['pdf'])
+        sap_file = st.file_uploader('Ordem de Carregamento (PDF)')
 
     st.subheader('2. Dados Extraídos / Preenchimento')
     placa_extract = ''
