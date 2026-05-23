@@ -1,7 +1,8 @@
 import streamlit as st
 from streamlit.components.v1 import html
 import datetime
-from cert_generator import extrair_dados_pdf, preencher_certificado
+import os
+from cert_generator import preencher_certificado
 
 # Configuração da página
 st.set_page_config(page_title='Calculadora de Etanol', layout='centered')
@@ -9,7 +10,7 @@ st.set_page_config(page_title='Calculadora de Etanol', layout='centered')
 st.title('Sistema de Etanol')
 tab1, tab2 = st.tabs(['Calculadora', 'Gerador de Certificado'])
 
-# Inicializar número do certificado no estado da sessão
+# Inicializar número do certificado no estado da sessão (não mais necessário estritamente aqui, mas mantido para fallback)
 if 'num_cert_atual' not in st.session_state:
     st.session_state.num_cert_atual = ''
 
@@ -193,37 +194,66 @@ with tab1:
 
 with tab2:
     st.header('Gerador de Certificado de Análise')
-    st.write('Faça o upload da Ordem de Carregamento (SAP) para extrair os dados e gerar o documento preenchido.')
+    st.write('Preencha os dados abaixo para gerar o documento preenchido.')
 
-    st.subheader('1. Arquivos Necessários')
-    colA, colB = st.columns(2)
-    with colA:
-        template_file = st.file_uploader('Modelo do Certificado (Word)')
-    with colB:
-        sap_file = st.file_uploader('Ordem de Carregamento (PDF)')
+    # Funções auxiliares para lidar com arquivos locais
+    ARQUIVO_NUM_CERT = 'cert_config.txt'
+    TEMPLATE_PADRAO = 'template_padrao.docx'
 
-    st.subheader('2. Dados Extraídos / Preenchimento')
-    placa_extract = ''
-    quant_extract = ''
+    def ler_numero_certificado():
+        if os.path.exists(ARQUIVO_NUM_CERT):
+            try:
+                with open(ARQUIVO_NUM_CERT, 'r') as f:
+                    return f.read().strip()
+            except:
+                pass
+        return '1'
 
-    if sap_file is not None:
-        placa_extract, quant_extract = extrair_dados_pdf(sap_file)
-        if placa_extract or quant_extract:
-            st.success('Dados extraídos com sucesso do PDF!')
+    def salvar_numero_certificado(num):
+        try:
+            with open(ARQUIVO_NUM_CERT, 'w') as f:
+                f.write(str(num))
+        except:
+            pass
+
+    st.subheader('1. Modelo do Certificado')
+    
+    template_file = st.file_uploader('Enviar novo Modelo do Certificado (Word)', type=['docx'])
+    
+    # Lógica de salvar o template
+    if template_file is not None:
+        try:
+            with open(TEMPLATE_PADRAO, "wb") as f:
+                f.write(template_file.getbuffer())
+            st.success("Novo modelo salvo com sucesso!")
+        except Exception as e:
+            st.error(f"Erro ao salvar o modelo: {e}")
+
+    # Verifica se existe um template
+    tem_template = os.path.exists(TEMPLATE_PADRAO)
+    if tem_template:
+        st.info("✅ Um modelo de certificado já está salvo no sistema e será utilizado.")
+    else:
+        st.warning("⚠️ Nenhum modelo de certificado encontrado. Por favor, envie um modelo acima.")
+
+    st.subheader('2. Dados para Preenchimento')
+
+    # Lê o último número ou '1'
+    num_sugerido = ler_numero_certificado()
 
     col1, col2 = st.columns(2)
     with col1:
-        num_cert = st.text_input('Número do Certificado', value=st.session_state.num_cert_atual)
+        num_cert = st.text_input('Número do Certificado', value=num_sugerido)
         data_cert = st.text_input('Data', value=datetime.datetime.now().strftime('%d/%m/%Y'))
     with col2:
-        placa = st.text_input('Placa do Veículo', value=placa_extract)
-        quantidade = st.text_input('Quantidade (Litros)', value=quant_extract)
+        placa = st.text_input('Placa do Veículo', value='')
+        quantidade = st.text_input('Quantidade (Litros)', value='')
 
     if st.button('Gerar Documento Word', type='primary'):
-        if template_file and sap_file:
+        if tem_template:
             if num_cert and placa and quantidade:
                 try:
-                    doc_bytes = preencher_certificado(template_file, num_cert, placa, quantidade, data_cert)
+                    doc_bytes = preencher_certificado(TEMPLATE_PADRAO, num_cert, placa, quantidade, data_cert)
                     st.success('Certificado gerado com sucesso!')
                     st.download_button(
                         label='Baixar Certificado Preenchido',
@@ -232,9 +262,10 @@ with tab2:
                         mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     )
                     
-                    # Tenta incrementar o número automaticamente para o próximo uso
+                    # Tenta incrementar o número automaticamente e salvar
                     if num_cert.isdigit():
-                        st.session_state.num_cert_atual = str(int(num_cert) + 1)
+                        proximo_num = int(num_cert) + 1
+                        salvar_numero_certificado(proximo_num)
                 except Exception as e:
                     st.error(f'Erro ao gerar documento: {e}')
             else:
@@ -244,7 +275,7 @@ with tab2:
                 if not quantidade: faltando.append("Quantidade")
                 st.warning(f"Falta preencher: {', '.join(faltando)}")
         else:
-            st.warning('Por favor, envie o Modelo do Certificado e a Ordem de Carregamento.')
+            st.warning('Por favor, envie o Modelo do Certificado antes de gerar.')
 
 st.markdown('---')
 st.caption('Desenvolvido por Rodrigo | Ferramenta para verificação de etanol em veículos')
