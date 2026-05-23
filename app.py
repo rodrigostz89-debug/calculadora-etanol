@@ -218,7 +218,7 @@ with tab2:
 
     st.subheader('1. Modelo do Certificado')
     
-    template_file = st.file_uploader('Enviar novo Modelo do Certificado (Word)', type=['docx'])
+    template_file = st.file_uploader('Enviar novo Modelo do Certificado (Word)')
     
     # Lógica de salvar o template
     if template_file is not None:
